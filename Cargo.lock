@@ -68,6 +68,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
+name = "api"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "dotenvy",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -212,6 +224,21 @@ name = "clap_lex"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
+
+[[package]]
+name = "cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "api",
+ "clap",
+ "dotenvy",
+ "mock",
+ "serde",
+ "serde_json",
+ "sync",
+ "tokio",
+]
 
 [[package]]
 name = "cmake"
@@ -954,6 +981,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "mcp"
+version = "0.1.0"
+dependencies = [
+ "api",
+ "dotenvy",
+ "rmcp",
+ "serde",
+ "sync",
+ "tokio",
+]
+
+[[package]]
 name = "memchr"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -977,60 +1016,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "moodle-api"
+name = "mock"
 version = "0.1.0"
 dependencies = [
- "base64",
- "dotenvy",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "moodle-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "dotenvy",
- "moodle-api",
- "moodle-mock",
- "moodle-sync",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "moodle-mcp"
-version = "0.1.0"
-dependencies = [
- "dotenvy",
- "moodle-api",
- "moodle-sync",
- "rmcp",
- "serde",
- "tokio",
-]
-
-[[package]]
-name = "moodle-mock"
-version = "0.1.0"
-dependencies = [
- "tokio",
-]
-
-[[package]]
-name = "moodle-sync"
-version = "0.1.0"
-dependencies = [
- "htmd",
- "moodle-api",
- "moodle-mock",
- "serde",
- "serde_json",
  "tokio",
 ]
 
@@ -1774,6 +1762,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "sync"
+version = "0.1.0"
+dependencies = [
+ "api",
+ "htmd",
+ "mock",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]

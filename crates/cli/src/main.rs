@@ -1,4 +1,4 @@
-//! `moodle-cli`: read-only Moodle access, built for agents first.
+//! `moodle`: read-only Moodle access, built for agents first.
 //!
 //! - Output is JSON on stdout: pretty on a terminal, compact when piped.
 //! - Errors are JSON on stderr: `{"error":{"code","message","hint"}}`.
@@ -14,27 +14,27 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use anyhow::{Context, Result};
+use api::Client;
+use api::calendar::GetActionEventsByTimesort;
+use api::course::GetUsersCourses;
+use api::site::GetSiteInfo;
 use clap::{Parser, Subcommand};
-use moodle_api::Client;
-use moodle_api::calendar::GetActionEventsByTimesort;
-use moodle_api::course::GetUsersCourses;
-use moodle_api::site::GetSiteInfo;
-use moodle_sync::{Course, FileState, Manifest, Report};
 use serde::Serialize;
+use sync::{Course, FileState, Manifest, Report};
 
 use config::{Credentials, MirrorConfig};
 use output::{emit, hinted, progress};
 
 const AGENT_GUIDE: &str = "\
 Workflow:
-  moodle-cli todo                    What needs doing next, across all courses
-  moodle-cli courses                 Find a course id
-  moodle-cli clone <course_id>       Mirror it into ./<shortname> (<id>)/
+  moodle todo                    What needs doing next, across all courses
+  moodle courses                 Find a course id
+  moodle clone <course_id>       Mirror it into ./<shortname> (<id>)/
   cd '<dir>' && read index.md        Course outline; each activity has <name> (<cmid>)/index.md
   grep -ri <term> .                  Search descriptions, pages and downloaded files
-  moodle-cli pull                    Refresh before trusting dates or submission status
-  moodle-cli status                  What was skipped (size limit) or failed, offline
-  moodle-cli fetch <path|cmid>       Download skipped files
+  moodle pull                    Refresh before trusting dates or submission status
+  moodle status                  What was skipped (size limit) or failed, offline
+  moodle fetch <path|cmid>       Download skipped files
 
 Output is JSON (compact when piped; filter with jq). Errors are JSON on stderr
 with a `hint`. Exit codes: 0 ok, 1 error, 2 some files failed.
@@ -42,7 +42,7 @@ Everything is read-only: nothing is ever submitted or changed on Moodle.";
 
 /// Read-only Moodle access for agents and humans.
 #[derive(Parser)]
-#[command(version, after_help = AGENT_GUIDE)]
+#[command(name = "moodle", version, after_help = AGENT_GUIDE)]
 struct Cli {
     /// Run as if started in this directory (for mirror commands).
     #[arg(short = 'C', global = true, value_name = "DIR")]
@@ -165,7 +165,7 @@ async fn login(url: &str, token: Option<String>) -> Result<ExitCode> {
                 return Err(hinted(
                     "interactive_required",
                     "login needs a browser and a terminal",
-                    "Ask the user to run `moodle-cli login --url <site>` themselves, or pass --token.",
+                    "Ask the user to run `moodle login --url <site>` themselves, or pass --token.",
                 ));
             }
             let base = if url.ends_with('/') {
@@ -173,7 +173,7 @@ async fn login(url: &str, token: Option<String>) -> Result<ExitCode> {
             } else {
                 format!("{url}/")
             };
-            let launch = moodle_api::auth::LaunchRequest {
+            let launch = api::auth::LaunchRequest {
                 service: "moodle_mobile_app".into(),
                 passport: passport(),
                 urlscheme: "moodledl".into(),
@@ -280,7 +280,7 @@ async fn courses(all: bool) -> Result<ExitCode> {
         #[serde(skip_serializing_if = "Option::is_none")]
         end: Option<String>,
     }
-    let iso = |t: Option<i64>| t.filter(|t| *t > 0).map(moodle_sync::format_iso);
+    let iso = |t: Option<i64>| t.filter(|t| *t > 0).map(sync::format_iso);
     let out: Vec<Out> = courses
         .into_iter()
         .map(|c| Out {
@@ -357,11 +357,11 @@ async fn todo(
                 let a = acts
                     .iter()
                     .find(|a| Some(a.cmid) == cmid && Some(*cid) == course_id)?;
-                Some(root.join(&a.dir).join(moodle_sync::INDEX))
+                Some(root.join(&a.dir).join(sync::INDEX))
             });
             let when = e.timesort.unwrap_or(e.timestart);
             Item {
-                due: moodle_sync::format_iso(when),
+                due: sync::format_iso(when),
                 overdue: e.overdue.unwrap_or(when < now),
                 course_id,
                 course: e.course.and_then(|c| c.shortname.or(c.fullname)),
@@ -390,10 +390,7 @@ async fn clone(
 
     if let Some(existing) = MirrorConfig::load(&root) {
         let hint = if existing.course_id == course_id {
-            format!(
-                "Run `moodle-cli -C '{}' pull` to update it.",
-                root.display()
-            )
+            format!("Run `moodle -C '{}' pull` to update it.", root.display())
         } else {
             "Choose another directory.".to_owned()
         };
@@ -474,7 +471,7 @@ fn status(dir: Option<&Path>) -> Result<ExitCode> {
         "site": config.site,
         "course_id": config.course_id,
         "max_file_mb": config.max_file_mb,
-        "synced_at": synced.map(moodle_sync::format_iso),
+        "synced_at": synced.map(sync::format_iso),
         "activities": manifest.as_ref().map_or(0, |m| m.activities.len()),
         "files_present": present,
         "skipped": list(FileState::Skipped),
@@ -489,14 +486,14 @@ async fn fetch(dir: Option<&Path>, targets: Vec<String>, all: bool) -> Result<Ex
         hinted(
             "no_manifest",
             "this mirror has no manifest yet",
-            "Run `moodle-cli pull` first.",
+            "Run `moodle pull` first.",
         )
     })?;
     if targets.is_empty() && !all {
         return Err(hinted(
             "no_targets",
             "nothing to fetch",
-            "Pass cmids, activity directories or file paths (see `moodle-cli status`), or --all.",
+            "Pass cmids, activity directories or file paths (see `moodle status`), or --all.",
         ));
     }
 
@@ -560,7 +557,7 @@ async fn fetch(dir: Option<&Path>, targets: Vec<String>, all: bool) -> Result<Ex
                 return Err(hinted(
                     "not_fetchable",
                     format!("{target} is not part of an activity"),
-                    "Run `moodle-cli pull` instead.",
+                    "Run `moodle pull` instead.",
                 ));
             };
             add(
@@ -571,7 +568,7 @@ async fn fetch(dir: Option<&Path>, targets: Vec<String>, all: bool) -> Result<Ex
             return Err(hinted(
                 "unknown_target",
                 format!("{target} is not a file or activity in this mirror"),
-                "See `moodle-cli status` for skipped files, or pass an activity cmid.",
+                "See `moodle status` for skipped files, or pass an activity cmid.",
             ));
         }
     }
@@ -597,7 +594,7 @@ async fn fetch(dir: Option<&Path>, targets: Vec<String>, all: bool) -> Result<Ex
         total.missing.extend(r.missing);
         total.warnings.extend(r.warnings);
     }
-    total.index = root.join(moodle_sync::INDEX);
+    total.index = root.join(sync::INDEX);
     emit_report(&root, &course, &total)
 }
 
@@ -669,7 +666,7 @@ fn moodle_rel(root: &Path, p: &Path) -> String {
 }
 
 fn default_max_mb() -> u64 {
-    moodle_sync::Options::default()
+    sync::Options::default()
         .max_file_size
         .map_or(0, |b| b / (1024 * 1024))
 }

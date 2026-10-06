@@ -7,8 +7,8 @@
 mod cache;
 mod server;
 
-use moodle_api::Client;
-use moodle_api::auth::SsoToken;
+use api::Client;
+use api::auth::SsoToken;
 use rmcp::ServiceExt;
 
 #[tokio::main]
@@ -25,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         token
     };
 
-    let mut options = moodle_sync::Options::default();
+    let mut options = sync::Options::default();
     if let Ok(mb) = std::env::var("MOODLE_MCP_MAX_FILE_MB") {
         let mb: u64 = mb
             .parse()

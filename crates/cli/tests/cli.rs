@@ -1,6 +1,5 @@
-//! Runs the `moodle-cli` binary against the mock Moodle from `moodle-sync`.
+//! Runs the `moodle` binary against the mock Moodle from `sync`.
 
-use moodle_mock as mock;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::Ordering;
@@ -17,7 +16,7 @@ async fn cli(base: &str, home: &Path, cwd: &Path, args: &[&str]) -> Run {
     let (base, home, cwd) = (base.to_owned(), home.to_owned(), cwd.to_owned());
     let args: Vec<String> = args.iter().map(|s| s.to_string()).collect();
     tokio::task::spawn_blocking(move || {
-        let out = Command::new(env!("CARGO_BIN_EXE_moodle-cli"))
+        let out = Command::new(env!("CARGO_BIN_EXE_moodle"))
             .args(&args)
             .current_dir(&cwd)
             .env("MOODLE_URL", &base)
@@ -34,6 +33,25 @@ async fn cli(base: &str, home: &Path, cwd: &Path, args: &[&str]) -> Run {
     })
     .await
     .unwrap()
+}
+
+#[test]
+fn command_name() {
+    for flag in ["--help", "--version"] {
+        let out = Command::new(env!("CARGO_BIN_EXE_moodle"))
+            .arg(flag)
+            .output()
+            .unwrap();
+        assert!(out.status.success());
+        let stdout = String::from_utf8(out.stdout).unwrap();
+        assert!(stdout.contains("moodle"), "{stdout}");
+        assert!(!stdout.contains("moodle-cli"), "{stdout}");
+        if flag == "--help" {
+            assert!(stdout.contains("Usage: moodle"), "{stdout}");
+        } else {
+            assert!(stdout.starts_with("moodle "), "{stdout}");
+        }
+    }
 }
 
 #[tokio::test]
@@ -57,7 +75,12 @@ async fn agent_workflow() {
     assert_eq!(r.code, 1);
     let err: Value = serde_json::from_str(r.stderr.trim()).unwrap();
     assert_eq!(err["error"]["code"], "not_a_mirror");
-    assert!(err["error"]["hint"].as_str().unwrap().contains("clone"));
+    assert!(
+        err["error"]["hint"]
+            .as_str()
+            .unwrap()
+            .contains("moodle clone")
+    );
 
     // Clone with a small size limit, git-style into ./<shortname> (<id>).
     let r = cli(base, &tmp, &tmp, &["clone", "42", "--max-file-mb", "0"]).await;

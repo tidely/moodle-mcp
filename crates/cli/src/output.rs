@@ -72,31 +72,29 @@ fn classify(err: &anyhow::Error) -> (&str, Option<&str>) {
         return (h.code, Some(&h.hint));
     }
     let api = err
-        .downcast_ref::<moodle_api::Error>()
+        .downcast_ref::<api::Error>()
         .or_else(|| match err.downcast_ref() {
-            Some(moodle_sync::Error::Api(e)) => Some(e),
+            Some(sync::Error::Api(e)) => Some(e),
             _ => None,
         });
     match api {
-        Some(moodle_api::Error::Moodle(e)) if e.errorcode == "invalidtoken" => (
+        Some(api::Error::Moodle(e)) if e.errorcode == "invalidtoken" => (
             "invalidtoken",
-            Some("The token expired or was revoked. Run `moodle-cli login` again."),
+            Some("The token expired or was revoked. Run `moodle login` again."),
         ),
-        Some(moodle_api::Error::Moodle(e)) if e.errorcode == "accessexception" => (
+        Some(api::Error::Moodle(e)) if e.errorcode == "accessexception" => (
             "accessexception",
             Some("This site doesn't allow that web service function for your account."),
         ),
-        Some(moodle_api::Error::Moodle(e)) => (e.errorcode.as_str(), None),
-        Some(moodle_api::Error::Http(_)) => (
+        Some(api::Error::Moodle(e)) => (e.errorcode.as_str(), None),
+        Some(api::Error::Http(_)) => (
             "network",
-            Some(
-                "Could not reach Moodle. Check the network and the site URL (`moodle-cli whoami`).",
-            ),
+            Some("Could not reach Moodle. Check the network and the site URL (`moodle whoami`)."),
         ),
         Some(_) => ("api", None),
-        None => match err.downcast_ref::<moodle_sync::Error>() {
-            Some(moodle_sync::Error::NotFound(_)) => ("not_found", None),
-            Some(moodle_sync::Error::Io(..)) => ("io", None),
+        None => match err.downcast_ref::<sync::Error>() {
+            Some(sync::Error::NotFound(_)) => ("not_found", None),
+            Some(sync::Error::Io(..)) => ("io", None),
             _ => ("error", None),
         },
     }

@@ -2,12 +2,12 @@
 
 use std::path::Path;
 
-use moodle_api::Client;
+use api::Client;
 use std::sync::atomic::Ordering;
 
-use moodle_sync::{Course, FileState, Manifest, Options};
+use sync::{Course, FileState, Manifest, Options};
 
-use moodle_mock::{TOKEN, mock_moodle};
+use mock::{TOKEN, mock_moodle};
 
 fn read(path: &Path) -> String {
     std::fs::read_to_string(path).unwrap_or_else(|e| panic!("{}: {e}", path.display()))

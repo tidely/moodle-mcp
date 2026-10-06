@@ -2,15 +2,15 @@ use std::fmt::Write;
 use std::path::Path;
 use std::sync::Arc;
 
-use moodle_api::Client;
-use moodle_api::course::GetUsersCourses;
-use moodle_api::site::GetSiteInfo;
-use moodle_sync::{Course, INDEX, Options, Report, human_size};
+use api::Client;
+use api::course::GetUsersCourses;
+use api::site::GetSiteInfo;
 use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::{Implementation, ServerCapabilities, ServerConfig};
 use rmcp::{ServerHandler, schemars, tool, tool_handler, tool_router};
 use serde::Deserialize;
+use sync::{Course, INDEX, Options, Report, human_size};
 
 use crate::cache::Cache;
 
@@ -119,7 +119,7 @@ impl MoodleMcp {
         &self,
         Parameters(params): Parameters<DownloadParams>,
     ) -> Result<String, String> {
-        let course_id = moodle_sync::course_of(&self.client, params.cmid)
+        let course_id = sync::course_of(&self.client, params.cmid)
             .await
             .map_err(|e| e.to_string())?;
         let course = Course::fetch(&self.client, course_id)

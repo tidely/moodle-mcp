@@ -1,17 +1,21 @@
 [package]
-name = "moodle-cli"
+name = "cli"
 version.workspace = true
 edition.workspace = true
+
+[[bin]]
+name = "moodle"
+path = "src/main.rs"
 
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true
 dotenvy.workspace = true
-moodle-api.workspace = true
-moodle-sync.workspace = true
+api.workspace = true
+sync.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
 
 [dev-dependencies]
-moodle-mock.workspace = true
+mock.workspace = true

@@ -2,7 +2,7 @@
 //!
 //! ```sh
 //! cp example.env .env   # then set MOODLE_URL
-//! cargo run -p moodle-api --example whoami
+//! cargo run -p api --example whoami
 //! ```
 //!
 //! Variables are read from the environment or a `.env` file (current directory
@@ -12,9 +12,9 @@
 use std::hash::{BuildHasher, RandomState};
 use std::io::{self, BufRead, Write};
 
-use moodle_api::Client;
-use moodle_api::auth::{LaunchRequest, SsoToken};
-use moodle_api::site::GetSiteInfo;
+use api::Client;
+use api::auth::{LaunchRequest, SsoToken};
+use api::site::GetSiteInfo;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -23,7 +23,7 @@ impl Cache {
     pub fn course_dir(&self, host: &str, shortname: &str, course_id: i64) -> PathBuf {
         self.root
             .join("files")
-            .join(moodle_sync::sanitize(host))
-            .join(moodle_sync::dir_name(shortname, course_id))
+            .join(sync::sanitize(host))
+            .join(sync::dir_name(shortname, course_id))
     }
 }

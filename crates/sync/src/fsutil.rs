@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, UNIX_EPOCH};
 
-use moodle_api::Client;
+use api::Client;
 use tokio::io::AsyncWriteExt;
 
 /// Longest single path component we produce, in bytes. Leaves room for

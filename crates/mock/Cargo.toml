@@ -1,5 +1,5 @@
 [package]
-name = "moodle-mock"
+name = "mock"
 version.workspace = true
 edition.workspace = true
 publish = false

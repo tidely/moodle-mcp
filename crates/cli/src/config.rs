@@ -2,15 +2,15 @@
 //!
 //! - Credentials: `$MOODLE_URL`/`$MOODLE_TOKEN` (environment or `.env`) take
 //!   precedence; otherwise `{config dir}/moodle-cli/credentials.json`, written
-//!   by `moodle-cli login` with owner-only permissions.
+//!   by `moodle login` with owner-only permissions.
 //! - Mirror: `{mirror}/.moodle/mirror.json`, written by `clone`. Commands find
 //!   it by walking up from the working directory, like git.
 
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use moodle_api::Client;
-use moodle_api::auth::SsoToken;
+use api::Client;
+use api::auth::SsoToken;
 use serde::{Deserialize, Serialize};
 
 use crate::output::hinted;
@@ -62,7 +62,7 @@ pub fn load_credentials() -> Result<Credentials> {
         hinted(
             "not_logged_in",
             "not logged in",
-            "Run `moodle-cli login --url https://your.moodle/` (or set MOODLE_URL and MOODLE_TOKEN).",
+            "Run `moodle login --url https://your.moodle/` (or set MOODLE_URL and MOODLE_TOKEN).",
         )
     })?;
     serde_json::from_str(&text).with_context(|| format!("{} is corrupt", path.display()))
@@ -102,7 +102,7 @@ pub struct MirrorConfig {
 
 impl MirrorConfig {
     pub fn path(root: &Path) -> PathBuf {
-        root.join(moodle_sync::META_DIR).join(MIRROR_FILE)
+        root.join(sync::META_DIR).join(MIRROR_FILE)
     }
 
     pub fn load(root: &Path) -> Option<Self> {
@@ -116,10 +116,10 @@ impl MirrorConfig {
             .with_context(|| format!("write {}", path.display()))
     }
 
-    pub fn options(&self) -> moodle_sync::Options {
-        moodle_sync::Options {
+    pub fn options(&self) -> sync::Options {
+        sync::Options {
             max_file_size: (self.max_file_mb > 0).then_some(self.max_file_mb * 1024 * 1024),
-            ..moodle_sync::Options::default()
+            ..sync::Options::default()
         }
     }
 }
@@ -130,7 +130,7 @@ pub fn find_mirror(start: Option<&Path>) -> Result<(PathBuf, MirrorConfig)> {
         hinted(
             "not_a_mirror",
             "not inside a course mirror",
-            "Run this inside a directory created by `moodle-cli clone <course_id>`, or pass -C <dir>.",
+            "Run this inside a directory created by `moodle clone <course_id>`, or pass -C <dir>.",
         )
     })
 }
@@ -158,7 +158,7 @@ pub fn check_site(config: &MirrorConfig, client: &Client) -> Result<()> {
                 config.site,
                 client.base()
             ),
-            "Log in to the mirror's site with `moodle-cli login --url <site>`.",
+            "Log in to the mirror's site with `moodle login --url <site>`.",
         ));
     }
     Ok(())

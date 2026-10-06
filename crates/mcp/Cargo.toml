@@ -1,12 +1,16 @@
 [package]
-name = "moodle-mcp"
+name = "mcp"
 version.workspace = true
 edition.workspace = true
 
+[[bin]]
+name = "moodle-mcp"
+path = "src/main.rs"
+
 [dependencies]
 dotenvy.workspace = true
-moodle-api.workspace = true
-moodle-sync.workspace = true
+api.workspace = true
+sync.workspace = true
 rmcp.workspace = true
 serde.workspace = true
 tokio.workspace = true

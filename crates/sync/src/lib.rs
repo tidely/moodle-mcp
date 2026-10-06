@@ -13,10 +13,10 @@
 //! ```
 //!
 //! ```no_run
-//! # async fn run(client: &moodle_api::Client) -> Result<(), moodle_sync::Error> {
-//! let course = moodle_sync::Course::fetch(client, 42).await?;
+//! # async fn run(client: &api::Client) -> Result<(), sync::Error> {
+//! let course = sync::Course::fetch(client, 42).await?;
 //! let dir = std::path::Path::new("mirror").join(course.dir_name());
-//! let report = course.sync(client, &dir, &moodle_sync::Options::default()).await?;
+//! let report = course.sync(client, &dir, &sync::Options::default()).await?;
 //! println!("{} files downloaded", report.downloaded.len());
 //! # Ok(()) }
 //! ```
@@ -31,12 +31,12 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use moodle_api::assign::{
+use api::assign::{
     Assignment, GetAssignments, GetSubmissionStatus, Plugin, Submission, SubmissionStatus,
 };
-use moodle_api::course::{self, GetCourseContents, GetCourseModule, GetCoursesByField, Module};
-use moodle_api::resource::{GetPages, Page};
-use moodle_api::{Client, File};
+use api::course::{self, GetCourseContents, GetCourseModule, GetCoursesByField, Module};
+use api::resource::{GetPages, Page};
+use api::{Client, File};
 use tokio::sync::Semaphore;
 use tokio::task::JoinSet;
 
@@ -88,13 +88,13 @@ pub struct Report {
 
 #[derive(Debug)]
 pub enum Error {
-    Api(moodle_api::Error),
+    Api(api::Error),
     Io(PathBuf, std::io::Error),
     NotFound(String),
 }
 
-impl From<moodle_api::Error> for Error {
-    fn from(e: moodle_api::Error) -> Self {
+impl From<api::Error> for Error {
+    fn from(e: api::Error) -> Self {
         Self::Api(e)
     }
 }
