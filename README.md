@@ -11,8 +11,7 @@ Everything is **read-only**. It never submits or changes anything on Moodle.
 You need [Rust](https://rustup.rs/).
 
 ```sh
-git clone <this repo> && cd moodle-mcp
-cargo install --path crates/moodle-cli
+cargo install --git https://github.com/tidely/moodle-mcp moodle-cli
 ```
 
 Log in once. This opens your Moodle's SSO page and stores the token in `~/.config/moodle-cli/credentials.json`, readable only by you:
@@ -52,13 +51,13 @@ Give your agent the skill in [`.agents/skills/moodle-cli/SKILL.md`](.agents/skil
 
 ## Repository layout
 
-| Crate | Purpose |
-|---|---|
-| `crates/moodle-api` | Moodle web service request/response types and a small HTTP client |
-| `crates/moodle-sync` | Mirrors a course into a directory (files + markdown indexes) |
-| `crates/moodle-cli` | The agent-first CLI |
-| `crates/moodle-mcp` | An MCP server over the same library, for clients without a shell |
-| `crates/moodle-mock` | Mock Moodle server for tests |
+| Crate                | Purpose                                                           |
+| -------------------- | ----------------------------------------------------------------- |
+| `crates/moodle-api`  | Moodle web service request/response types and a small HTTP client |
+| `crates/moodle-sync` | Mirrors a course into a directory (files + markdown indexes)      |
+| `crates/moodle-cli`  | The agent-first CLI                                               |
+| `crates/moodle-mcp`  | An MCP server over the same library, for clients without a shell  |
+| `crates/moodle-mock` | Mock Moodle server for tests                                      |
 
 The Moodle login flow and API usage follow [Moodle-DL](https://github.com/C0D3D3V/Moodle-DL).
 
