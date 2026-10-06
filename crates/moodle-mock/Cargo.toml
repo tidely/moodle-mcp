@@ -1,0 +1,9 @@
+[package]
+name = "moodle-mock"
+version.workspace = true
+edition.workspace = true
+publish = false
+description = "Minimal mock Moodle server for tests."
+
+[dependencies]
+tokio.workspace = true

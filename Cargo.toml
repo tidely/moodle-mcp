@@ -1,0 +1,23 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
+[workspace.dependencies]
+moodle-api = { path = "crates/moodle-api" }
+moodle-mock = { path = "crates/moodle-mock" }
+
+moodle-sync = { path = "crates/moodle-sync" }
+anyhow = "1.0.104"
+base64 = "0.23.1"
+clap = { version = "4.6.7", features = ["derive"] }
+dotenvy = "0.15.7"
+htmd = "0.5.5"
+reqwest = { version = "0.13.5", features = ["form"] }
+rmcp = { version = "3.5.1", features = ["transport-io"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tokio = { version = "1.53.2", features = ["fs", "io-util", "macros", "net", "rt-multi-thread", "sync"] }

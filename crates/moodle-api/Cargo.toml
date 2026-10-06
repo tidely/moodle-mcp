@@ -1,0 +1,14 @@
+[package]
+name = "moodle-api"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+base64.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+dotenvy.workspace = true
+tokio.workspace = true
