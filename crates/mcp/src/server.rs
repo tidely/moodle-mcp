@@ -49,7 +49,9 @@ pub struct SyncCourseParams {
 pub struct DownloadParams {
     /// Course module id (`cmid`) of the activity, as shown in the course index.
     pub cmid: i64,
-    /// Only download files with these names. Omit to download all files of the activity.
+    /// Only download these files, each given as a file name (`a.pdf`) or a path
+    /// relative to the activity folder (`week 1/a.pdf`). Entries the activity doesn't
+    /// have are reported as not found. Omit to download all files of the activity.
     #[serde(default)]
     pub files: Option<Vec<String>>,
 }
@@ -57,7 +59,7 @@ pub struct DownloadParams {
 #[tool_router]
 impl MoodleMcp {
     #[tool(
-        description = "List the Moodle courses the user is enrolled in, with course ids and local mirror paths."
+        description = "List every Moodle course the user is enrolled in, past and current, newest first. Each entry gives the full name, shortname, `course_id` (pass it to `sync_course`), and either the absolute path of the local mirror's index.md or `not synced`. Only reads from Moodle; it does not sync or download anything. A mirror can be out of date; call `sync_course` to refresh it."
     )]
     async fn list_courses(&self) -> Result<String, String> {
         let client = &self.client;
@@ -113,7 +115,7 @@ impl MoodleMcp {
     }
 
     #[tool(
-        description = "Download the files of one activity into the local course mirror, including files skipped by `sync_course` for being too large. Returns absolute paths."
+        description = "Download the files of one activity into its folder in the local course mirror, ignoring the size limit. Use it for files that `sync_course` listed as skipped (too large). `cmid` comes from the course index.md or a `sync_course` report; the course does not need to be synced first. Also rewrites the activity's index.md (and creates the course index.md if missing). Returns the activity index path, download counts, the absolute path of each downloaded file, and any requested files the activity doesn't have."
     )]
     async fn download(
         &self,

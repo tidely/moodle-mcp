@@ -35,7 +35,7 @@ Don't ask the user to paste their token into the chat.
 | `moodle fetch <path\|cmid>... \| --all` | Download files skipped by the size limit (100 MB default).             |
 | `moodle whoami`                         | Check login and site.                                                  |
 
-Mirror commands work from any subdirectory of a mirror, like git. If a mirror already exists, `pull` it instead of cloning again. You are encouraged to `clone` courses when you need additional insight.
+Mirror commands work from any subdirectory of a mirror, like git. If a mirror already exists, `pull` it instead of cloning again.
 
 ## Mirror layout
 
